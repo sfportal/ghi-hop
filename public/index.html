@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Ghi Họp · ghi âm và tóm tắt cuộc họp</title>
+  <meta name="theme-color" content="#0f766e" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand" id="btnHome" title="Danh sách cuộc họp">
+      <img src="icons/icon.svg" alt="" width="28" height="28" /> <span>Ghi Họp</span>
+    </button>
+    <div class="spacer"></div>
+    <span id="modeBadge" class="badge">…</span>
+    <button id="btnInstall" class="ghost" hidden>Cài ứng dụng</button>
+    <button id="btnSettings" class="ghost" title="Cài đặt">⚙︎ Cài đặt</button>
+  </header>
+
+  <!-- Danh sách cuộc họp -->
+  <main id="viewList" class="view">
+    <div class="list-head">
+      <h1>Cuộc họp</h1>
+      <button id="btnNew" class="primary big">● Cuộc họp mới</button>
+    </div>
+    <p id="supportWarn" class="warn" hidden></p>
+    <ul id="meetingList" class="meeting-list"></ul>
+    <p id="emptyList" class="muted">Chưa có cuộc họp nào. Bấm “Cuộc họp mới” để bắt đầu ghi.</p>
+  </main>
+
+  <!-- Một cuộc họp -->
+  <main id="viewMeeting" class="view" hidden>
+    <section class="rec-bar">
+      <input id="title" class="title" placeholder="Tên cuộc họp" />
+      <div class="rec-controls">
+        <span id="recDot" class="dot"></span>
+        <span id="timer" class="timer">00:00</span>
+        <button id="btnRec" class="primary">● Bắt đầu ghi</button>
+        <button id="btnPause" hidden>❚❚ Tạm dừng</button>
+        <button id="btnStop" class="danger" hidden>■ Kết thúc</button>
+      </div>
+      <div id="status" class="status muted"></div>
+    </section>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="transcript" class="active">Chép lời</button>
+      <button data-tab="notes">Ghi chú <span id="noteCount" class="pill">0</span></button>
+      <button data-tab="summary">Tổng hợp</button>
+    </nav>
+
+    <div class="grid">
+      <section class="panel" data-panel="transcript">
+        <div class="panel-head">
+          <h2>Chép lời trực tiếp</h2>
+          <label class="muted small"><input type="checkbox" id="autoScroll" checked /> Tự cuộn</label>
+        </div>
+        <div id="transcript" class="transcript"></div>
+        <div id="interim" class="interim"></div>
+      </section>
+
+      <section class="panel" data-panel="notes">
+        <div class="panel-head"><h2>Ghi chú của bạn</h2></div>
+        <div class="quick">
+          <button id="btnMark" class="mark" title="Phím tắt: Ctrl+B">⭐ Đánh dấu đoạn vừa nói</button>
+        </div>
+        <div class="note-types" id="noteTypes">
+          <button data-type="note" class="active">Ghi chú</button>
+          <button data-type="important">⭐ Quan trọng</button>
+          <button data-type="decision">✔ Quyết định</button>
+          <button data-type="action">☐ Việc cần làm</button>
+          <button data-type="question">? Câu hỏi</button>
+        </div>
+        <form id="noteForm" class="note-form">
+          <textarea id="noteInput" rows="2" placeholder="Gõ ghi chú, Enter để lưu (Shift+Enter xuống dòng). Mốc giờ được gắn tự động."></textarea>
+          <button class="primary" type="submit">Lưu</button>
+        </form>
+        <ul id="notes" class="notes"></ul>
+      </section>
+
+      <section class="panel" data-panel="summary">
+        <div class="panel-head">
+          <h2>Tổng hợp</h2>
+          <div class="row">
+            <button id="btnLive" class="ghost">↻ Tổng hợp đến lúc này</button>
+            <button id="btnSummarize" class="primary">✦ Tóm tắt cuộc họp</button>
+          </div>
+        </div>
+        <div id="summaryEmpty" class="muted">Trong lúc họp, bấm “Tổng hợp đến lúc này” để xem các ý đang bàn. Khi họp xong, bấm “Tóm tắt cuộc họp” để ra biên bản (có cả ghi chú của bạn).</div>
+        <div id="liveBox" class="md live" hidden></div>
+        <div id="summaryBox" class="md" hidden></div>
+        <div class="row export">
+          <audio id="player" controls hidden></audio>
+          <button id="btnCopy" class="ghost">Sao chép biên bản</button>
+          <button id="btnExport" class="ghost">Tải .md</button>
+          <button id="btnAudio" class="ghost" hidden>Tải file ghi âm</button>
+          <button id="btnDelete" class="ghost danger-text">Xóa cuộc họp</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Cài đặt -->
+  <dialog id="dlgSettings">
+    <form method="dialog" class="settings">
+      <h2>Cài đặt</h2>
+      <p class="muted small" id="settingsMode"></p>
+      <label id="rowKey">Khóa Claude API (chế độ demo, chỉ lưu trên máy này)
+        <input id="setKey" type="password" placeholder="sk-ant-..." autocomplete="off" />
+      </label>
+      <label id="rowPass">Mã truy cập (nếu quản trị đặt)
+        <input id="setPass" type="password" autocomplete="off" />
+      </label>
+      <label>Tự tổng hợp trong lúc họp
+        <select id="setAuto">
+          <option value="0">Tắt (tự bấm)</option>
+          <option value="3">Mỗi 3 phút</option>
+          <option value="5">Mỗi 5 phút</option>
+          <option value="10">Mỗi 10 phút</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="setAudio" checked /> Lưu file ghi âm (tắt nếu điện thoại Android không chép lời được)</label>
+      <div class="row end">
+        <button value="cancel" class="ghost">Đóng</button>
+        <button value="ok" id="btnSaveSettings" class="primary">Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
