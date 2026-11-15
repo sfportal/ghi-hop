@@ -35,7 +35,10 @@ Chi phí Claude ước tính: một cuộc họp 1 giờ khoảng 20.000 đến 
 
 ## Cách chạy
 
-### Cách 1, nhanh nhất (chế độ demo, khóa Claude trên máy)
+### Cách 0, GitHub Pages (chế độ demo, miễn phí)
+Repo có sẵn workflow `.github/workflows/pages.yml` đưa thư mục `public/` lên GitHub Pages mỗi lần push vào `main`. Chỉ cần bật một lần: Settings, Pages, Source chọn **GitHub Actions**. Địa chỉ: https://sfportal.github.io/ghi-hop/
+
+### Cách 1, Cloudflare Pages (chế độ demo, khóa Claude trên máy)
 1. Cloudflare Dashboard, Workers & Pages, Create, Pages, **Upload assets**, kéo thả thư mục `public/`.
 2. Mở đường dẫn https được cấp, vào ⚙︎ Cài đặt, dán khóa Claude API (console.anthropic.com).
 Chỉ dùng cách này cho bản thân, vì khóa nằm trong trình duyệt.
